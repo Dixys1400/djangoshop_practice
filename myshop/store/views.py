@@ -1,7 +1,9 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, Category
 from django.core.paginator import Paginator
-
+from django.contrib.auth import login
 
 def home(request):
     products = Product.objects.all()
@@ -16,7 +18,7 @@ def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     return render(request, 'product_detail.html', {'product': product})
 
-
+@login_required
 def add_product(request):
     categories = Category.objects.all()
     if request.method == 'POST':
@@ -34,3 +36,14 @@ def category_products(request, pk):
     category = get_object_or_404(Category, pk=pk)
     products = category.products.all()
     return render(request, 'category_products.html', {'category': category, 'products': products})
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+        else:
+            form = UserCreationForm()
+        return render(request, 'register.html', {'form': form})
